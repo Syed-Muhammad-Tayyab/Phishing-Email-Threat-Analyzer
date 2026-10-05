@@ -1,0 +1,214 @@
+<!-- Created with Syed Muhammad Tayyab -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard AI — Threat Analysis Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d',
+            },
+            danger: {
+              500: '#ef4444',
+              600: '#dc2626',
+            },
+            dark: {
+              900: '#090d16',
+              800: '#0f172a',
+              700: '#1e293b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #060911;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    .bg-mesh {
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(34, 197, 94, 0.12) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(239, 68, 68, 0.1) 0px, transparent 50%);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .glow-button {
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glow-button::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #3b82f6);
+      z-index: -1;
+      opacity: 0;
+      filter: blur(12px);
+      transition: opacity 0.3s ease;
+    }
+    .glow-button:hover::after {
+      opacity: 0.6;
+    }
+    @keyframes pulseScan {
+      0%, 100% { transform: translateY(-100%); }
+      50% { transform: translateY(100%); }
+    }
+    .scanner-line {
+      animation: pulseScan 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-mesh min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-black">
+
+  <header class="w-full border-b border-white/5 py-5 px-6 sm:px-12 flex justify-between items-center relative z-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-blue-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <svg class="w-5 h-5 text-black font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div>
+        <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">PhishGuard</span>
+        <span class="text-xs ml-1.5 px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20 font-mono">v2.4 AI</span>
+      </div>
+    </div>
+    <div class="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-mono bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+      <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+      SYSTEM ACTIVE
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-12 w-full relative z-10">
+    <div class="text-center mb-10">
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-4">
+        Zero-Trust Email <br class="hidden sm:inline" />
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-brand-500 via-emerald-400 to-cyan-400">Threat Inspector</span>
+      </h1>
+      <p class="text-slate-400 text-base sm:text-lg max-w-xl mx-auto font-light">
+        Paste suspicious raw email payload below. Our neural engine will dissect metadata, language patterns, and malicious vectors instantly.
+      </p>
+    </div>
+
+    <form id="inspectionForm" class="glass-card rounded-2xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div id="scannerOverlay" class="hidden absolute inset-0 bg-dark-900/90 backdrop-blur-md z-20 flex-col items-center justify-center gap-4">
+        <div class="relative w-16 h-16">
+          <div class="absolute inset-0 rounded-full border-2 border-brand-500/20"></div>
+          <div class="absolute inset-0 rounded-full border-t-2 border-brand-500 animate-spin"></div>
+        </div>
+        <div class="text-center">
+          <p class="text-white font-semibold text-lg tracking-wide">Analyzing Threat Vectors...</p>
+          <p class="text-slate-400 text-xs font-mono mt-1">Extracting headers, parsing links & dispatching report</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-2">Target Report Recipient</label>
+          <div class="relative">
+            <input type="email" id="recipientEmail" required placeholder="name@company.com" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all text-sm font-mono" />
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-500">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-2">Email Subject & Body Payload</label>
+          <textarea id="emailPayload" required rows="7" placeholder="Subject: Urgent Account Verification Needed&#10;&#10;Dear Customer, We detected unusual activity..." class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl p-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all text-sm font-mono leading-relaxed resize-none"></textarea>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="glow-button w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-500 text-black font-extrabold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center gap-3 text-sm tracking-wider uppercase transition-all">
+            <span>Execute Threat Analysis</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div id="statusNotification" class="hidden mt-6 p-4 rounded-xl border flex items-center gap-3 text-sm"></div>
+  </main>
+
+  <footer class="w-full border-t border-white/5 py-6 px-6 text-center text-xs text-slate-500">
+    <p>Powered by n8n Automation Engine & OpenAI GPT-4 Vision/Text Analytics</p>
+  </footer>
+
+  <script>
+    // Created with Syed Muhammad Tayyab
+    const N8N_WEBHOOK_URL = 'WEBHOOK_URL';
+
+    const form = document.getElementById('inspectionForm');
+    const overlay = document.getElementById('scannerOverlay');
+    const statusBox = document.getElementById('statusNotification');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('recipientEmail').value;
+      const content = document.getElementById('emailPayload').value;
+
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+      statusBox.classList.add('hidden');
+
+      try {
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, content: content })
+        });
+
+        if (response.ok) {
+          showStatus('Analysis complete! Detailed threat breakdown sent to your inbox.', 'success');
+          form.reset();
+        } else {
+          showStatus('Failed to send inspection payload. Verify n8n webhook connection.', 'error');
+        }
+      } catch (err) {
+        showStatus('Network error. Check n8n CORS or endpoint URL.', 'error');
+      } finally {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      }
+    });
+
+    function showStatus(msg, type) {
+      statusBox.classList.remove('hidden', 'bg-brand-500/10', 'border-brand-500/30', 'text-brand-400', 'bg-danger-500/10', 'border-danger-500/30', 'text-danger-400');
+      if (type === 'success') {
+        statusBox.classList.add('bg-brand-500/10', 'border-brand-500/30', 'text-brand-400');
+      } else {
+        statusBox.classList.add('bg-danger-500/10', 'border-danger-500/30', 'text-danger-400');
+      }
+      statusBox.innerText = msg;
+    }
+  </script>
+</body>
+</html>
